@@ -59,6 +59,8 @@ class CellGrid:
     def get_random_point_within_me(self):
         vertexes = self.get_vertexes()
         
+        Y_TOLERANCE_CLEARANCE = Const.CLEARANCE * 3
+        
         # short_magnitude = float('inf')
         # shortest_vector = None
         # for vector in self.vectors:
@@ -82,12 +84,12 @@ class CellGrid:
         minima_x += Const.CLEARANCE
         
         maxima_y = max(vertex_y)
-        vertex_y = list(filter(lambda a: round(a,3) != round(maxima_y, 3), vertex_y))
+        # vertex_y = list(filter(lambda a: round(a,3) != round(maxima_y, 3), vertex_y))
         
-        maxima_y -= Const.CLEARANCE 
+        maxima_y -= (Const.CLEARANCE + Y_TOLERANCE_CLEARANCE)
         
-        minima_y = max(vertex_y)
-        minima_y += Const.CLEARANCE
+        minima_y = min(vertex_y)
+        minima_y += (Const.CLEARANCE + Y_TOLERANCE_CLEARANCE)
            
         while True:
             x_random = random.uniform(minima_x, maxima_x)
@@ -97,8 +99,8 @@ class CellGrid:
             if self.is_inside(pt):
                 break
             
-        print("Random Pt inside Grid:")
-        print(pt)
+        # print("Random Pt inside Grid:")
+        # print(pt)
             
         return pt      
         

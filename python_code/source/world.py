@@ -7,6 +7,7 @@ from . obstacle import Obstacle
 from . constants import Const
 from . vector import Vector
 from . utility import print_partition
+from . node import Node
 
 @dataclass
 class World:
@@ -27,7 +28,14 @@ class World:
         
         self.cell_grids = []
         
-        self.random_points_in_grid = []
+        self.roadman_points = []
+        self.node_list = []
+        self.first_node = None
+        
+        self.traversal_path = []
+        
+        self.open_list = []
+        self.closed_list = []
         
     def is_in_obstacle_space(self, pt):
         flag = False
@@ -70,7 +78,8 @@ class World:
         for vertex in self.get_all_vertexes():
             self.project_orthogonal_vectors_for(vertex)
         
-        self.sample_random_points_in_grid()
+        self.sample_roadman_points_and_create_node_tree()
+        # self.get_mid_pts_on_intersection_vectors()
         #test single vertex
         # self.project_orthogonal_vectors_for((0 + Const.SKEW_WIDTH, Const.CANVAS_HEIGHT))
     
@@ -148,23 +157,101 @@ class World:
         if down_vector is not None:
             self.intersection_vectors.append(down_vector)
             self.down_vectors.append(down_vector)
-            
-    # def create_grids(self):
         
-    def sample_random_points_in_grid(self):
+    def sample_roadman_points_and_create_node_tree(self):
+        parent_node_down = None
+        child_node_down = None
+        first_node_down = None
+        
+        parent_node_up = None
+        child_node_up = None
+        first_node_up = None
         
         for i in range(len(self.up_vectors) - 1):
-            first_up_vector = self.up_vectors[i]
-            second_up_vector = self.up_vectors[i + 1]
+            first_vector_down = self.down_vectors[i]
+            second_vector_down = self.down_vectors[i + 1]
             
-            cell = CellGrid(((first_up_vector.tail),
-                                            (first_up_vector.head),
-                                            (second_up_vector.head),
-                                            second_up_vector.tail))
+            cell = CellGrid(((first_vector_down.head),
+                                            (first_vector_down.tail),
+                                            (second_vector_down.tail),
+                                            second_vector_down.head))
             
             self.cell_grids.append(cell)
             
-            self.random_points_in_grid.append(cell.get_random_point_within_me())
+            #down vector mid point
+            self.roadman_points.append(first_vector_down.get_mid_point())
+            child_node_down = Node(self.roadman_points[-1])
+            
+            if parent_node_down is not None:
+                 parent_node_down.add_child_node(child_node_down)
+            else:
+                self.first_node = child_node_down
+                 
+            parent_node_down = child_node_down
+            
+            #cell grid random point
+            self.roadman_points.append(cell.get_random_point_within_me())
+            child_node_down = Node(self.roadman_points[-1])
+            parent_node_down.add_child_node(child_node_down)
+            parent_node_down = child_node_down
+            
+            
+            
+            first_vector_up = self.up_vectors[i]
+            second_vector_up = self.up_vectors[i + 1]
+            
+            cell = CellGrid(((first_vector_up.tail),
+                                            (first_vector_up.head),
+                                            (second_vector_up.head),
+                                            second_vector_up.tail))
+            
+            self.cell_grids.append(cell)
+            
+            #up vector mid point
+            self.roadman_points.append(first_vector_up.get_mid_point())
+            child_node_up = Node(self.roadman_points[-1])
+            
+            if parent_node_up is not None:
+                 parent_node_up.add_child_node(child_node_up)
+            else:
+                parent_node_down.add_child_node(child_node_up)
+                 
+            parent_node_up = child_node_up
+            
+            #cell grid random point
+            self.roadman_points.append(cell.get_random_point_within_me())
+            child_node_up = Node(self.roadman_points[-1])
+            parent_node_up.add_child_node(child_node_up)
+            parent_node_up = child_node_up
+
+        
+        # last down vector
+        self.roadman_points.append(second_vector_down.get_mid_point())
+        last_down_node = Node(self.roadman_points[-1])
+        parent_node_down.add_child_node(last_down_node)
+        
+        # last up vector
+        self.roadman_points.append(second_vector_up.get_mid_point())
+        parent_node_up.add_child_node(Node(self.roadman_points[-1]))
+        last_down_node.add_child_node(parent_node_up)
+        
+
+        
+    def traverse_node_tree(self):
+        self.open_list.append(self.first_node)
+        
+        while self.open_list:
+            parent_node = self.open_list.pop(0)
+            self.open_list.extend(parent_node.childNodes)
+            self.closed_list.append(parent_node)
+            
+            for child_node in parent_node.childNodes:
+                self.traversal_path.append(Vector(parent_node.coord, child_node.coord))
+            
+        
+        
+
+            
         
     
             

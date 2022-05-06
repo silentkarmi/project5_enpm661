@@ -57,6 +57,12 @@ class Vector:
             
         return line_eq
     
+    def get_mid_point(self):
+        pt = ((self.head[0] + self.tail[0]) * 0.5,
+              (self.head[1] + self.tail[1]) * 0.5)
+        
+        return pt
+    
     def is_point_on_vector(self, pt):
         # print_partition()
         flag = False

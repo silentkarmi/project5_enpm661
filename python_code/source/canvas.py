@@ -47,23 +47,33 @@ class Canvas:
                       scale=1,
                       color='b')
             
-        for cell in self.world.cell_grids:
-            x_pos, y_pos, x_dir, y_dir = \
-               cell.get_draw_vector_form()
-                
-            ax.quiver(x_pos,
-                      y_pos,
-                      x_dir,
-                      y_dir, 
+        for vector in self.world.traversal_path:
+            ax.quiver(vector.head[0],
+                      vector.head[1],
+                      vector.direction[0],
+                      vector.direction[1],
                       angles='xy', 
                       scale_units='xy', 
                       scale=1,
-                      color = 'g')
+                      color='g')
+            
+        # for cell in self.world.cell_grids:
+        #     x_pos, y_pos, x_dir, y_dir = \
+        #        cell.get_draw_vector_form()
+                
+        #     ax.quiver(x_pos,
+        #               y_pos,
+        #               x_dir,
+        #               y_dir, 
+        #               angles='xy', 
+        #               scale_units='xy', 
+        #               scale=1,
+        #               color = 'g')
             # end of for loop
         
-        for pt in self.world.random_points_in_grid:
+        for pt in self.world.roadman_points:
             x_pos, y_pos = pt
-            plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue")
+            plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="white")
         
         ax.axis([Const.ORIGIN_X, 
                     Const.CANVAS_WIDTH, 

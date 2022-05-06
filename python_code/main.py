@@ -9,6 +9,7 @@ from source.world import World
 def main():
     world = World()
     world.perform_vertical_decomposition_algorithm()
+    world.traverse_node_tree()
     
     canvas = Canvas(world)
     canvas.draw_world()
