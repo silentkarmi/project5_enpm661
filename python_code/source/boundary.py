@@ -19,6 +19,17 @@ class Boundary(Obstacle):
                 head = pts[i + 1]
                 
             self.vectors.append(Vector(head, tail))
+            
+    def is_inside(self, pt):
+        first_line_eq = self.vectors[0].get_line_equation(pt)
+        second_line_eq = self.vectors[1].get_line_equation(pt)
+        third_line_eq = self.vectors[2].get_line_equation(pt)
+        fourth_line_eq = self.vectors[3].get_line_equation(pt)
+        
+        return (first_line_eq < 0 and 
+                second_line_eq > 0 and
+                third_line_eq > 0 and
+                fourth_line_eq < 0)
         
             
         
