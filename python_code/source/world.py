@@ -286,25 +286,6 @@ class World:
     def is_this_goal_node(self, node):
         return (round(node.coord[0], 2) == round(Const.GOAL_NODE[0], 2) and 
                 round(node.coord[1], 2) == round(Const.GOAL_NODE[1], 2))
-    
-    #traverse nodes to put the start node and end node connection    
-    # def traverse_node_tree(self):
-    #     self.open_list = []
-    #     self.closed_list = []
-    #     self.open_list.append(self.first_node)
-        
-    #     while self.open_list:
-    #         parent_node = self.open_list.pop(0)
-            
-    #         for child_node in parent_node.childNodes:
-    #             child_node.parent = parent_node
-    #             heapq.heappush(self.open_list, child_node)
-                
-    #         self.closed_list.append(parent_node)
-            
-    #         if self.is_this_goal_node(parent_node):
-    #             self.solution_node = parent_node
-    #             break
             
     def back_track(self):
         print("Backtracking...")
