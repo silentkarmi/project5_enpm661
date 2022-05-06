@@ -17,7 +17,8 @@ class Node:
         self.childNodes = []
         self.cost2come = 0
         self.cost2go = 0
-        # self.calculate_cost2Go()
+        self.calculate_cost2Go()
+        self.parent = None
         
     def add_child_node(self, node):
         self.childNodes.append(node)

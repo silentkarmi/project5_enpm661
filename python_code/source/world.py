@@ -9,6 +9,8 @@ from . vector import Vector
 from . utility import print_partition
 from . node import Node
 
+import heapq
+
 @dataclass
 class World:
     
@@ -37,6 +39,9 @@ class World:
         self.open_list = []
         self.closed_list = []
         
+        self.solution_path = []
+        self.solution_node = None
+        
     def is_in_obstacle_space(self, pt):
         flag = False
         for obstacle in self.obstacles:
@@ -46,8 +51,6 @@ class World:
             
         return flag
         
-        
-    # ToDo: Sweep Edges
     def get_all_vertexes(self):
         vertexes = []
         
@@ -79,7 +82,7 @@ class World:
             self.project_orthogonal_vectors_for(vertex)
         
         self.sample_roadman_points_and_create_node_tree()
-        # self.get_mid_pts_on_intersection_vectors()
+        
         #test single vertex
         # self.project_orthogonal_vectors_for((0 + Const.SKEW_WIDTH, Const.CANVAS_HEIGHT))
     
@@ -232,21 +235,85 @@ class World:
         
         # last up vector
         self.roadman_points.append(second_vector_up.get_mid_point())
+        print(second_vector_up.get_mid_point())
         parent_node_up.add_child_node(Node(self.roadman_points[-1]))
         last_down_node.add_child_node(parent_node_up)
         
-
-        
     def traverse_node_tree(self):
+        self.open_list = []
+        self.closed_list = []
         self.open_list.append(self.first_node)
         
-        while self.open_list:
+        close_len_to_start = float("inf")
+        close_len_to_end = float("inf")
+        
+        closest_start_node_found = False
+        closest_goal_node_found = False
+        
+        closest_start_node = None
+        
+        while (not closest_start_node_found or
+               not closest_goal_node_found):
             parent_node = self.open_list.pop(0)
-            self.open_list.extend(parent_node.childNodes)
-            self.closed_list.append(parent_node)
             
+            if not closest_start_node_found:
+                vec = Vector(Const.START_NODE, parent_node.coord)
+                if vec.magnitude < close_len_to_start:
+                    close_len_to_start = vec.magnitude
+                    closest_start_node = parent_node
+                elif vec.magnitude > close_len_to_start:
+                    closest_start_node_found = True
+                    self.first_node = Node(Const.START_NODE)
+                    closest_start_node.parent = self.first_node
+                    self.first_node.parent = None
+                    
+            if not closest_goal_node_found:
+                vec = Vector(Const.GOAL_NODE, parent_node.coord)
+                if vec.magnitude < close_len_to_end:
+                    close_len_to_end = vec.magnitude
+                    closest_goal_node = parent_node
+                elif vec.magnitude > close_len_to_end:
+                    closest_goal_node_found = True
+                    self.solution_node = Node(Const.GOAL_NODE)
+                    closest_goal_node.add_child_node(self.solution_node)
+                    self.solution_node.parent = closest_goal_node
+                    
+                
             for child_node in parent_node.childNodes:
-                self.traversal_path.append(Vector(parent_node.coord, child_node.coord))
+                child_node.parent = parent_node
+                heapq.heappush(self.open_list, child_node)
+                
+    def is_this_goal_node(self, node):
+        return (round(node.coord[0], 2) == round(Const.GOAL_NODE[0], 2) and 
+                round(node.coord[1], 2) == round(Const.GOAL_NODE[1], 2))
+    
+    #traverse nodes to put the start node and end node connection    
+    # def traverse_node_tree(self):
+    #     self.open_list = []
+    #     self.closed_list = []
+    #     self.open_list.append(self.first_node)
+        
+    #     while self.open_list:
+    #         parent_node = self.open_list.pop(0)
+            
+    #         for child_node in parent_node.childNodes:
+    #             child_node.parent = parent_node
+    #             heapq.heappush(self.open_list, child_node)
+                
+    #         self.closed_list.append(parent_node)
+            
+    #         if self.is_this_goal_node(parent_node):
+    #             self.solution_node = parent_node
+    #             break
+            
+    def back_track(self):
+        print("Backtracking...")
+        tempNode = self.solution_node
+        while tempNode.parent != None:
+            self.traversal_path.insert(0, Vector(tempNode.parent.coord, tempNode.coord))
+            tempNode = tempNode.parent
+            
+
             
         
         
