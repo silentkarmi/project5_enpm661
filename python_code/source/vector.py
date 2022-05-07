@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 import math
-from pdb import line_prefix
-
 from numpy import NaN
 
-from source.utility import print_partition
+from . utility import print_partition
+from .constants import Const
 
 @dataclass
 class Vector:
@@ -57,6 +56,19 @@ class Vector:
             
         return line_eq
     
+    def get_corresponding_y(self, x):
+        return (self.slope * x + self.intercept)
+    
+    def get_corresponding_x(self, y):
+        x = 0
+        # if self.slope == 0:
+        #     x = self.head[0]
+        if self.slope == float('inf'):
+            x = self.intercept
+        else:
+            x = (y - self.intercept) / self.slope
+        return x
+    
     def get_mid_point(self):
         pt = ((self.head[0] + self.tail[0]) * 0.5,
               (self.head[1] + self.tail[1]) * 0.5)
@@ -67,20 +79,22 @@ class Vector:
         # print_partition()
         flag = False
         x, y = pt
-        x = round(x, 2)
-        y = round(y, 2)
-        # print(f"Point to check:({x}, {y}) on {self}")
+        # x = round(x, Const.ROUND_DECIMAL_POINT)
+        # y = round(y, Const.ROUND_DECIMAL_POINT)
+        
         minima_x = min(self.head[0], self.tail[0])
         maxima_x = max(self.head[0], self.tail[0])
         minima_y = min(self.head[1], self.tail[1])
         maxima_y = max(self.head[1], self.tail[1])
         
-        if x >= minima_x and x <= maxima_x:
-            if y >= minima_y and y <= maxima_y:
-                flag = (round(y, 2) == 
-                        round(self.slope * x + self.intercept, 2))
+        if ((x >= minima_x and x <= maxima_x)
+            or (y >= minima_y and y <= maxima_y)):
+                value = round((y - (self.slope * x + self.intercept)), Const.ROUND_DECIMAL_POINT)
+                if value == 0:
+                    flag = True
                 
-                # print(f"{y} == {self.slope} * {x} + {self.intercept} | flag = {flag} ")
+                # print(f"Point to check:({x}, {y}) on {self}")
+                # print(f"Value = {value} | flag = {flag} ")
                 
         # print_partition()
                 

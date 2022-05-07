@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from email.base64mime import header_length
+from matplotlib import widgets
 import matplotlib.pyplot as plt
 import numpy as np
 from . vector import Vector
@@ -11,7 +12,10 @@ class Canvas:
        self.world = world
        
     def draw_world(self):
+        print("Draw World...")
         fig, ax = plt.subplots()
+        
+        vector_draw_width = 0.001
         
         for obstacle in self.world.obstacles:
             x_pos, y_pos, x_dir, y_dir = \
@@ -24,7 +28,8 @@ class Canvas:
                       angles='xy', 
                       scale_units='xy', 
                       scale=1,
-                      color = 'r')
+                      color = 'r',
+                      width = vector_draw_width)
             
         x_pos, y_pos, x_dir, y_dir = \
                self.world.boundary.get_draw_vector_form()
@@ -35,7 +40,8 @@ class Canvas:
                       y_dir, 
                       angles='xy', 
                       scale_units='xy', 
-                      scale=1)
+                      scale=1,
+                      width = vector_draw_width)
         
         for vector in self.world.intersection_vectors:
             ax.quiver(vector.head[0],
@@ -45,7 +51,8 @@ class Canvas:
                       angles='xy', 
                       scale_units='xy', 
                       scale=1,
-                      color='b')
+                      color='b',
+                      width = vector_draw_width)
             
         for vector in self.world.traversal_path:
             ax.quiver(vector.head[0],
@@ -55,7 +62,8 @@ class Canvas:
                       angles='xy', 
                       scale_units='xy', 
                       scale=1,
-                      color='g')
+                      color='g',
+                      width = vector_draw_width)
             
         # for cell in self.world.cell_grids:
         #     x_pos, y_pos, x_dir, y_dir = \
@@ -68,9 +76,15 @@ class Canvas:
         #               angles='xy', 
         #               scale_units='xy', 
         #               scale=1,
-        #               color = 'g')
-            # end of for loop
+        #               color = 'g',
+        #               width = vector_draw_width)
         
+        if self.world.first_node is not None:
+            plt.plot(self.world.first_node.coord[0], self.world.first_node.coord[1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="orange")
+        
+        if self.world.solution_node is not None:
+            plt.plot(self.world.solution_node.coord[0], self.world.solution_node.coord[1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="green")
+
         for pt in self.world.roadman_points:
             x_pos, y_pos = pt
             plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="white")

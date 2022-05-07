@@ -21,9 +21,10 @@ class Node:
         self.parent = None
         
     def add_child_node(self, node):
-        self.childNodes.append(node)
         vec = Vector(self.coord, node.coord)
-        self.cost2come = vec.magnitude
+        node.cost2come = vec.magnitude + self.cost2come
+        node.parent = self
+        self.childNodes.append(node)
         
     def __lt__(self, other):
         return self.cost2come + self.cost2go < other.cost2come + other.cost2go
@@ -36,7 +37,10 @@ class Node:
         x1, y1 = Const.GOAL_NODE
         
         #manhattan heuristic
-        self.cost2go = abs(x1 - x) + abs(y1 - y)
+        # self.cost2go = abs(x1 - x) + abs(y1 - y)
         
         #euclidean heuristic
-        # self.cost2go = round(math.sqrt((x1 - x)**2 + (y1 - y)**2))
+        self.cost2go = round(math.sqrt((x1 - x)**2 + (y1 - y)**2))
+        
+    def __str__(self):
+        return f"Node({round(self.coord[0],2)},{round(self.coord[1], 2)})"

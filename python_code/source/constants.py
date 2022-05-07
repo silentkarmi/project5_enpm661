@@ -4,21 +4,36 @@ from dataclasses import dataclass
 class Const:
     #Everything in meters
     
-    CANVAS_WIDTH = 10
-    CANVAS_HEIGHT = 10
+    CANVAS_WIDTH = 50
+    CANVAS_HEIGHT = 50
     
     ORIGIN_X = 0
     ORIGIN_Y = 0
-    SKEW_WIDTH = 1
     
-    RESOLUTION = 0.1    
     
-    ROBOT_DIA = 0.25
+
+    ROUND_DECIMAL_POINT = 1
+    RESOLUTION = 0.1
+    
+    ROBOT_DIA = 0.178
     WALL_CLEARANCE = 0.25
     
-    CLEARANCE = ROBOT_DIA + WALL_CLEARANCE
+    JITTER_VALUE = RESOLUTION * 0.1
     
-    START_NODE = (CLEARANCE, CLEARANCE)
-    GOAL_NODE = (CANVAS_WIDTH - CLEARANCE,
-                 CANVAS_HEIGHT - CLEARANCE)
+    SKEW_WIDTH = RESOLUTION
+    
+    GOAL_THRESOLD = RESOLUTION
+    
+    
+    
+    CLEARANCE = ROBOT_DIA + WALL_CLEARANCE + JITTER_VALUE * 2
+    
+    TREE_RADIUS = 0.3 + CLEARANCE
+    
+    START_NODE = (10, 10)
+    GOAL_NODE = (40,
+                 40)
+    
+    # GOAL_NODE = (49.00,
+    #              25.00)
     
