@@ -13,7 +13,6 @@ def main():
     world = World()
     start_time = time.time()
     
-    
     # vertical decomposition has to be done only once
     world.perform_vertical_decomposition_algorithm() 
     world.generate_way_points(Const.START_NODE, 

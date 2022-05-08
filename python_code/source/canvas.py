@@ -17,6 +17,20 @@ class Canvas:
         
         vector_draw_width = 0.001
         
+        # BOUNDARY
+        x_pos, y_pos, x_dir, y_dir = \
+               self.world.boundary.get_draw_vector_form()
+               
+        ax.quiver(x_pos,
+                      y_pos,
+                      x_dir,
+                      y_dir, 
+                      angles='xy', 
+                      scale_units='xy', 
+                      scale=1,
+                      width = vector_draw_width)
+        
+        # OBSTACLES
         for obstacle in self.world.obstacles:
             x_pos, y_pos, x_dir, y_dir = \
                obstacle.get_draw_vector_form()
@@ -31,18 +45,8 @@ class Canvas:
                       color = 'r',
                       width = vector_draw_width)
             
-        x_pos, y_pos, x_dir, y_dir = \
-               self.world.boundary.get_draw_vector_form()
-               
-        ax.quiver(x_pos,
-                      y_pos,
-                      x_dir,
-                      y_dir, 
-                      angles='xy', 
-                      scale_units='xy', 
-                      scale=1,
-                      width = vector_draw_width)
         
+        # # UP-DOWN PROJECTION VECTORS
         # for vector in self.world.intersection_vectors:
         #     ax.quiver(vector.head[0],
         #               vector.head[1],
@@ -54,17 +58,31 @@ class Canvas:
         #               color='b',
         #               width = vector_draw_width)
             
-        # for vector in self.world.traversal_path:
-        #     ax.quiver(vector.head[0],
-        #               vector.head[1],
-        #               vector.direction[0],
-        #               vector.direction[1],
-        #               angles='xy', 
-        #               scale_units='xy', 
-        #               scale=1,
-        #               color='g',
-        #               width = vector_draw_width)
+        # ROADMAP POINTS
+        # for pt in self.world.roadman_points:
+        #     x_pos, y_pos = pt
+        #     plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="white")
         
+        # ax.axis([Const.ORIGIN_X, 
+        #             Const.CANVAS_WIDTH, 
+        #             Const.ORIGIN_Y,
+        #             Const.CANVAS_HEIGHT])
+            
+        # BEFORE SMOOTHENING TRAJECTORY
+        for i in range(len(self.world.before_smoothening_way_points) - 1):
+            vector = Vector(self.world.before_smoothening_way_points[i],
+                            self.world.before_smoothening_way_points[i + 1])
+            ax.quiver(vector.head[0],
+                      vector.head[1],
+                      vector.direction[0],
+                      vector.direction[1],
+                      angles='xy', 
+                      scale_units='xy', 
+                      scale=1,
+                      color='orange',
+                      width = vector_draw_width)
+            
+        # AFTER SMOOTHENING TRAJECTORY
         for i in range(len(self.world.way_points) - 1):
             vector = Vector(self.world.way_points[i],
                             self.world.way_points[i + 1])
@@ -78,6 +96,7 @@ class Canvas:
                       color='g',
                       width = vector_draw_width)
             
+        # CELL-GRIDS
         # for cell in self.world.cell_grids:
         #     x_pos, y_pos, x_dir, y_dir = \
         #        cell.get_draw_vector_form()
@@ -92,21 +111,12 @@ class Canvas:
         #               color = 'g',
         #               width = vector_draw_width)
         
+        if self.world.way_points:
+            plt.plot(self.world.way_points[0][0], self.world.way_points[0][1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="orange")
         
-        # plt.plot(self.world.way_points[0][0], self.world.way_points[0][1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="orange")
-        
-        # if self.world.solution_node is not None:
-        #     plt.plot(self.world.way_points[-1][0], self.world.way_points[-1][1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="blue")
+        if self.world.solution_node is not None:
+            plt.plot(self.world.way_points[-1][0], self.world.way_points[-1][1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="blue")
 
-        # for pt in self.world.roadman_points:
-        #     x_pos, y_pos = pt
-        #     plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="white")
-        
-        ax.axis([Const.ORIGIN_X, 
-                    Const.CANVAS_WIDTH, 
-                    Const.ORIGIN_Y,
-                    Const.CANVAS_HEIGHT])
-            
 
         plt.show()
         

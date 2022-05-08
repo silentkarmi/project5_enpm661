@@ -23,7 +23,7 @@ class World:
     def __init__(self):
         self.obstacles = []
         
-        file_path = 'source/forest50.yaml' #10, 20, 30, 50
+        file_path = 'source/forest100.yaml' #10, 20, 30, 50
 
         with open(file_path) as f:
             data = yaml.load(f, Loader=yaml.FullLoader) # data is a dict
@@ -51,13 +51,6 @@ class World:
                                  (x + Const.TREE_RADIUS, y), 
                                  (x, y + Const.TREE_RADIUS)))
             self.obstacles.append(obstacle)
-            
-            # if i == 3:
-            #     break
-            
-            # obstacle = Obstacle(((4,5), (6,3), (8,5), (6,7)))
-            # self.obstacles.append(obstacle)
-            # break
         
         self.boundary = Boundary(((0 + Const.SKEW_WIDTH, Const.CANVAS_HEIGHT), 
                             (0,0),
@@ -79,9 +72,32 @@ class World:
         
         self.total_nodes_searched = 0
         
+        self.before_smoothening_way_points = []
         self.way_points = []
         
+    def object_in_interest(self, vec_path):
+        objects_in_interest = []
         
+        x1_pt, y1_pt = vec_path.head
+        x2_pt, y2_pt = vec_path.tail
+        
+        x1 = min(x1_pt, x2_pt) - Const.TREE_RADIUS * 2
+        x2 = max(x1_pt, x2_pt) + Const.TREE_RADIUS * 2
+        
+        # y1 = min(y1_pt, y2_pt)
+        # y2 = max(y1_pt, y2_pt)
+        
+        for obstacle in self.obstacles:
+            is_object_of_interest = False
+            for vector in obstacle.vectors:
+                if not is_object_of_interest:
+                    x,y = vector.head
+                    if (x >= x1 and x <= x2):
+                        objects_in_interest.append(obstacle)
+                        is_object_of_interest = True
+                    
+        
+        return objects_in_interest
         
     def is_in_obstacle_space(self, pt):
         flag = False
@@ -106,7 +122,7 @@ class World:
                 closest_obstacle = obstacle
                 
         closest_obstacle.already_traversed = True
-        near_tree_pt = (closest_obstacle.vectors[0].head[0] - Const.CLEARANCE,
+        near_tree_pt = (closest_obstacle.vectors[0].head[0] - Const.JITTER_VALUE,
                         closest_obstacle.vectors[0].head[1])
         return near_tree_pt
                 
@@ -227,7 +243,8 @@ class World:
             
     def do_vector_collide_with_obstacles(self, vector, resolution = Const.RESOLUTION * 0.05):
         flag = False
-        for obstacle in self.obstacles:
+        obects_of_interest = self.object_in_interest(vector)
+        for obstacle in obects_of_interest:
             if obstacle.does_vector_collide(vector, resolution):
                 flag = True
                 break
@@ -494,7 +511,7 @@ class World:
                 continue
             
             if not self.do_vector_collide_with_obstacles(
-                         Vector(start_coord, goal_coord)):
+                         Vector(start_coord, goal_coord), Const.RESOLUTION * 0.005):
                 # print(f"Find Path between:{start_coord} and {goal_coord}")
                 final_way_points.append(start_coord)
                 final_way_points.append(goal_coord)
@@ -504,37 +521,32 @@ class World:
                 trees_done += 1
             else:
                 continue
-            # else:
-            #     solution_node = self.traverse_node_tree(first_node_in_graph, start_coord, goal_coord)
-            #     path = self.back_track(solution_node)
-            #     way_points = self.generate_solution_path(path)
-            #     final_way_points.extend(way_points)
-            #     start_coord = goal_coord
-            #     first_node_in_graph = solution_node
-            #     first_node_in_graph.add_child_node(solution_node.parent.childNodes[0])
-            #     trees_done += 1
             
         print("Finding path to final goal node...")
         solution_node = self.traverse_node_tree(first_node_in_graph, start_coord, final_goal_coord)
-        path = self.back_track(solution_node)
-        way_points = self.generate_solution_path(path)
+        if solution_node:
+            path = self.back_track(solution_node)
+            way_points = self.generate_solution_path(path)
+            self.before_smoothening_way_points = way_points
+            
+            print("Smoothening waypoints...")
+            
+            new_way_points = self.smoothen_waypoints(way_points)
+            
+            for number_of_time in range(Const.SMOOTHEN_STRENGTH - 1):
+                new_way_points = self.smoothen_waypoints(new_way_points)
+
+            final_way_points.extend(new_way_points)
+            
+            self.way_points = final_way_points
+            print(final_way_points)
+            
+            self.way_points.insert(0, final_start_coord)
+            
+            self.solution_node = solution_node
+        else:
+            print("PATH SOLUTION not FOUND")    
         
-        print("Smoothening waypoints...")
-        new_way_points = self.smoothen_waypoints(way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        new_way_points = self.smoothen_waypoints(new_way_points)
-        
-        final_way_points.extend(new_way_points)
-        
-        self.way_points = final_way_points
-        self.way_points.insert(0, final_start_coord)
-        
-        self.solution_node = solution_node
         
         return final_way_points
     
@@ -545,7 +557,7 @@ class World:
             second_pt = waypts[i + 1]
             third_pt = waypts[i + 2]
             vec = Vector(first_pt, third_pt)
-            if not self.do_vector_collide_with_obstacles(vec, Const.RESOLUTION * 0.01):
+            if not self.do_vector_collide_with_obstacles(vec, Const.RESOLUTION * 0.009):
                 new_waypts.append(first_pt)
                 new_waypts.append(third_pt)
             else:

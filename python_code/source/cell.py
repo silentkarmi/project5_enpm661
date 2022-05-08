@@ -56,7 +56,7 @@ class CellGrid:
                 third_line_eq < 0 and
                 fourth_line_eq < 0)
         
-    def does_vector_collide(self, vector, resolution = Const.RESOLUTION * 0.05):
+    def does_vector_collide(self, vector, resolution = Const.RESOLUTION * 0.1):
         y1 = min(vector.head[1], vector.tail[1])
         y2 = max(vector.head[1], vector.tail[1])
         
