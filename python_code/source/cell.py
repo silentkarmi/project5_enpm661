@@ -56,12 +56,12 @@ class CellGrid:
                 third_line_eq < 0 and
                 fourth_line_eq < 0)
         
-    def does_vector_collide(self, vector):
+    def does_vector_collide(self, vector, resolution = Const.RESOLUTION * 0.05):
         y1 = min(vector.head[1], vector.tail[1])
         y2 = max(vector.head[1], vector.tail[1])
         
         flag = False
-        for y in np.arange(y1, y2, Const.RESOLUTION * 0.1):
+        for y in np.arange(y1, y2, resolution):
             x = vector.get_corresponding_x(y)
             
             # print(f"({x},{y}) is inside flag={self.is_inside((x,y))}")

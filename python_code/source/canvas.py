@@ -43,18 +43,31 @@ class Canvas:
                       scale=1,
                       width = vector_draw_width)
         
-        for vector in self.world.intersection_vectors:
-            ax.quiver(vector.head[0],
-                      vector.head[1],
-                      vector.direction[0],
-                      vector.direction[1],
-                      angles='xy', 
-                      scale_units='xy', 
-                      scale=1,
-                      color='b',
-                      width = vector_draw_width)
+        # for vector in self.world.intersection_vectors:
+        #     ax.quiver(vector.head[0],
+        #               vector.head[1],
+        #               vector.direction[0],
+        #               vector.direction[1],
+        #               angles='xy', 
+        #               scale_units='xy', 
+        #               scale=1,
+        #               color='b',
+        #               width = vector_draw_width)
             
-        for vector in self.world.traversal_path:
+        # for vector in self.world.traversal_path:
+        #     ax.quiver(vector.head[0],
+        #               vector.head[1],
+        #               vector.direction[0],
+        #               vector.direction[1],
+        #               angles='xy', 
+        #               scale_units='xy', 
+        #               scale=1,
+        #               color='g',
+        #               width = vector_draw_width)
+        
+        for i in range(len(self.world.way_points) - 1):
+            vector = Vector(self.world.way_points[i],
+                            self.world.way_points[i + 1])
             ax.quiver(vector.head[0],
                       vector.head[1],
                       vector.direction[0],
@@ -79,15 +92,15 @@ class Canvas:
         #               color = 'g',
         #               width = vector_draw_width)
         
-        if self.world.first_node is not None:
-            plt.plot(self.world.first_node.coord[0], self.world.first_node.coord[1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="orange")
         
-        if self.world.solution_node is not None:
-            plt.plot(self.world.solution_node.coord[0], self.world.solution_node.coord[1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="green")
+        # plt.plot(self.world.way_points[0][0], self.world.way_points[0][1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="orange")
+        
+        # if self.world.solution_node is not None:
+        #     plt.plot(self.world.way_points[-1][0], self.world.way_points[-1][1], marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="blue")
 
-        for pt in self.world.roadman_points:
-            x_pos, y_pos = pt
-            plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="white")
+        # for pt in self.world.roadman_points:
+        #     x_pos, y_pos = pt
+        #     plt.plot(x_pos, y_pos, marker="o", markersize=10, markeredgecolor="blue", markerfacecolor="white")
         
         ax.axis([Const.ORIGIN_X, 
                     Const.CANVAS_WIDTH, 

@@ -15,25 +15,11 @@ def main():
     
     
     # vertical decomposition has to be done only once
-    world.perform_vertical_decomposition_algorithm()
+    world.perform_vertical_decomposition_algorithm() 
+    world.generate_way_points(Const.START_NODE, 
+                              Const.GOAL_NODE,
+                              Const.TREES_REQUIRED)    
     
-    
-    if world.is_in_obstacle_space(Const.START_NODE):
-        print("INVALID START NODE")
-        return
-    
-    if world.is_in_obstacle_space(Const.GOAL_NODE):
-        print("INVALID GOAL NODE")
-        return
-    
-    if not world.boundary.is_inside(Const.START_NODE):
-        print("START NODE OUTSIDE BOUNDARY")
-        
-    if not world.boundary.is_inside(Const.GOAL_NODE):
-        print("GOAL NODE OUTSIDE BOUNDARY")
-        
-    world.traverse_node_tree()
-    world.back_track()
     # world.check_vector_collision_with_obstacle()
     # print(f"Total Nodes Searched:{len(world.closed_list)}")
     print("--- %s seconds for running the algorithm ---" % (time.time() - start_time))

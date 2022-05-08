@@ -1,5 +1,8 @@
 from dataclasses import dataclass
+from doctest import TestResults
 from typing_extensions import Self
+
+from soupsieve import closest
 
 from source.cell import CellGrid
 from . boundary import Boundary
@@ -20,7 +23,7 @@ class World:
     def __init__(self):
         self.obstacles = []
         
-        file_path = 'source/forest30.yaml' #10, 20, 30, 50
+        file_path = 'source/forest50.yaml' #10, 20, 30, 50
 
         with open(file_path) as f:
             data = yaml.load(f, Loader=yaml.FullLoader) # data is a dict
@@ -69,17 +72,14 @@ class World:
         
         self.roadman_points = []
         self.node_list = []
-        self.first_node = None
+        self.first_node_in_graph = None
         
-        self.traversal_path = []
-        
-        self.open_list = []
-        self.closed_list = []
-        
-        self.solution_path = []
+
         self.solution_node = None
         
         self.total_nodes_searched = 0
+        
+        self.way_points = []
         
         
         
@@ -91,6 +91,25 @@ class World:
                 break
             
         return flag
+    
+    def nearest_obstacle(self, pt):
+        min_len = float('inf')
+        closest_obstacle = None
+        for obstacle in self.obstacles:
+            diff = (obstacle.vectors[0].head[0] - pt[0])
+            
+            len = 0
+            len += abs(diff)
+            len += abs(obstacle.vectors[0].head[1] - pt[1])
+            if len < min_len and not obstacle.already_traversed and diff > 0:
+                min_len = len
+                closest_obstacle = obstacle
+                
+        closest_obstacle.already_traversed = True
+        near_tree_pt = (closest_obstacle.vectors[0].head[0] - Const.CLEARANCE,
+                        closest_obstacle.vectors[0].head[1])
+        return near_tree_pt
+                
         
     def get_all_vertexes(self):
         vertexes = []
@@ -206,10 +225,10 @@ class World:
             self.intersection_vectors.append(down_vector)
             self.down_vectors.append(down_vector)
             
-    def do_vector_collide_with_obstacles(self, vector):
+    def do_vector_collide_with_obstacles(self, vector, resolution = Const.RESOLUTION * 0.05):
         flag = False
         for obstacle in self.obstacles:
-            if obstacle.does_vector_collide(vector):
+            if obstacle.does_vector_collide(vector, resolution):
                 flag = True
                 break
             
@@ -218,12 +237,13 @@ class World:
         
     def sample_roadman_points_and_create_node_tree(self):
         print("Creating sample_roadman_points_and_create_node_tree..")
+        
         parent_node_down = None
         child_node_down = None
         
         parent_node_up = None
         child_node_up = None
-        first_node_up = None
+        first_node_in_graph_up = None
         
         len_vector = max(len(self.up_vectors), len(self.down_vectors))
         
@@ -246,7 +266,7 @@ class World:
                 
                 if parent_node_down is None:
                     parent_node_down = Node(self.roadman_points[-1])
-                    self.first_node = parent_node_down
+                    self.first_node_in_graph = parent_node_down
                 else:
                     child_node_down = Node(self.roadman_points[-1])
                     if parent_node_up is not None:
@@ -345,41 +365,45 @@ class World:
         # Const.GOAL_NODE = parent_node_up.coord
         # print(Const.GOAL_NODE)
         
-    def traverse_node_tree(self):
-        print("traverse_node_tree..")
-        self.open_list = []
-        self.open_list.append(self.first_node)
+    def traverse_node_tree(self,first_node_in_graph, start_coord, goal_coord):
+        # print("traverse_node_tree..")
+        
+        open_list = []
+        open_list.append(first_node_in_graph)
         
         closest_start_node_found = False
         closest_goal_node_found = False
         
+        solution_node = None
+        
         
         while (not closest_start_node_found):
             
-            if len(self.open_list) == 0:
+            if len(open_list) == 0:
                 break
             
-            parent_node = heapq.heappop(self.open_list)
+            parent_node = heapq.heappop(open_list)
             
             if not closest_start_node_found:
-                if parent_node.coord[0] > Const.START_NODE[0]:
+                if parent_node.coord[0] > start_coord[0]:
                     
                      if not self.do_vector_collide_with_obstacles(
-                         Vector(parent_node.coord, Const.START_NODE)):
+                         Vector(parent_node.coord, start_coord)):
                         closest_start_node_found = True
-                        self.first_node = Node(Const.START_NODE)
+                        first_node_in_graph = Node(start_coord)
                         parent_node.parent = None
-                        self.first_node.add_child_node(parent_node)
+                        first_node_in_graph.add_child_node(parent_node)
                         break
                     
                 
             for child_node in parent_node.childNodes:
                 child_node.parent = parent_node
-                heapq.heappush(self.open_list, child_node)
+                heapq.heappush(open_list, child_node)
                 
                 
-        self.open_list = []
-        self.open_list.append(self.first_node)
+                
+        open_list = []
+        open_list.append(first_node_in_graph)
         
         closest_start_node_found = False
         closest_goal_node_found = False
@@ -387,70 +411,27 @@ class World:
         
         while (not closest_goal_node_found):
             
-            if len(self.open_list) == 0:
+            if len(open_list) == 0:
                 break
             
-            parent_node = heapq.heappop(self.open_list)
+            parent_node = heapq.heappop(open_list)
             
                     
             if not closest_goal_node_found:
-                if parent_node.coord[0] > Const.GOAL_NODE[0]:
+                if parent_node.coord[0] > goal_coord[0]:
                     if not self.do_vector_collide_with_obstacles(
-                         Vector(parent_node.coord, Const.GOAL_NODE)):
+                         Vector(parent_node.coord, goal_coord)):
                         closest_goal_node_found = True
-                        self.solution_node = Node(Const.GOAL_NODE)
-                        parent_node.parent.add_child_node(self.solution_node)
+                        solution_node = Node(goal_coord)
+                        parent_node.parent.add_child_node(solution_node)
                         break
                     
                 
             for child_node in parent_node.childNodes:
                 child_node.parent = parent_node
-                heapq.heappush(self.open_list, child_node)
-     
-    def is_node_in_closed_list_then_resolve(self, check_node):
-        flag = False
-        for node in self.closed_list:
-            if (round(node.coord[0], Const.ROUND_DECIMAL_POINT) == 
-                round(check_node.coord[0], Const.ROUND_DECIMAL_POINT) and
-                round(node.coord[1], Const.ROUND_DECIMAL_POINT) == 
-                round(check_node.coord[1], Const.ROUND_DECIMAL_POINT)):
+                heapq.heappush(open_list, child_node)
                 
-                if check_node.cost2come > node.cost2come:
-                    node = check_node
-                    flag = True
-                    break
-     
-    # traverse nodes to put the start node and end node connection    
-    def traverse_node_tree_simple_version(self):
-        print("traverse_node_tree_simple_version")
-        self.open_list = []
-        self.closed_list = []
-        self.open_list.append(self.first_node)
-        
-        while self.open_list:
-            parent_node = heapq.heappop(self.open_list)
-            
-            # if self.is_node_in_closed_list_then_resolve(parent_node):
-            #     continue
-            # else:
-            # if parent_node.coord in self.closed_list:
-            #     continue
-            
-            # self.closed_list.append(parent_node.coord)
-            
-            # if parent_node.parent is not None:
-            #     self.traversal_path.append(Vector(parent_node.parent.coord, parent_node.coord))
-            
-            # self.total_nodes_searched += 1
-            if self.is_this_goal_node(parent_node):
-                self.solution_node = parent_node
-                break
-            
-            for child_node in parent_node.childNodes:
-                # child_node.parent = parent_node
-                heapq.heappush(self.open_list, child_node)
-                
-            
+        return solution_node                         
                
     def is_this_goal_node(self, nodeToCheck):
         xcentre, ycentre = Const.GOAL_NODE
@@ -459,29 +440,129 @@ class World:
         
         return in_goal
             
-    def back_track(self):
-        if self.solution_node is None:
+    def back_track(self, solution_node):
+        traversal_path = []
+        if solution_node is None:
             print("NO SOLUTION FOUND!!!")
         else:
-            print("Backtracking...")
-            tempNode = self.solution_node
+            # print("Backtracking...")
+            tempNode = solution_node
             while tempNode.parent != None:
-                self.traversal_path.insert(0, Vector(tempNode.parent.coord, tempNode.coord))
+                traversal_path.insert(0, Vector(tempNode.parent.coord, tempNode.coord))
                 tempNode = tempNode.parent
                 
-            #     if self.first_node.coord == tempNode.coord:
-            #         break
-            
-            # tempNode = self.first_node
-            # while tempNode.childNodes:
-            #     self.traversal_path.insert(0, Vector(tempNode.coord, tempNode.childNodes[0].coord))
-            #     tempNode = tempNode.childNodes[0]
+        return traversal_path
                 
-            #     if self.is_this_goal_node(tempNode):
-            #         break
-            # for i in range(len(self.closed_list) - 1):
-            #      self.traversal_path.insert(0, Vector(self.closed_list[i], self.closed_list[i+1]))
+    def generate_solution_path(self, traversal_path):
+        solution_path = []
+        for segment in traversal_path:
+            solution_path.append(segment.tail)
             
+        return solution_path
+            
+    def generate_way_points(self, final_start_coord, final_goal_coord, trees_required):
+        print("Generating Path...")
+        if self.is_in_obstacle_space(final_start_coord):
+            print("INVALID START NODE")
+            return
+    
+        if self.is_in_obstacle_space(final_goal_coord):
+            print("INVALID GOAL NODE")
+            return
+        
+        if not self.boundary.is_inside(final_start_coord):
+            print("START NODE OUTSIDE BOUNDARY")
+        
+            
+        if not self.boundary.is_inside(final_goal_coord):
+            print("GOAL NODE OUTSIDE BOUNDARY") 
+        
+        final_way_points = []
+        start_coord = final_start_coord
+        first_node_in_graph = self.first_node_in_graph
+        trees_done = 1
+        count = 0
+        print("Finding path to trees...")
+        while trees_done < trees_required:
+            count += 1
+            if count == 50:
+                break
+            
+            goal_coord = self.nearest_obstacle(start_coord)
+            
+            if self.is_in_obstacle_space(goal_coord):
+                continue
+            
+            if not self.do_vector_collide_with_obstacles(
+                         Vector(start_coord, goal_coord)):
+                # print(f"Find Path between:{start_coord} and {goal_coord}")
+                final_way_points.append(start_coord)
+                final_way_points.append(goal_coord)
+                start_coord = goal_coord
+                # first_node_in_graph = solution_node
+                # first_node_in_graph.add_child_node(solution_node.parent.childNodes[0])
+                trees_done += 1
+            else:
+                continue
+            # else:
+            #     solution_node = self.traverse_node_tree(first_node_in_graph, start_coord, goal_coord)
+            #     path = self.back_track(solution_node)
+            #     way_points = self.generate_solution_path(path)
+            #     final_way_points.extend(way_points)
+            #     start_coord = goal_coord
+            #     first_node_in_graph = solution_node
+            #     first_node_in_graph.add_child_node(solution_node.parent.childNodes[0])
+            #     trees_done += 1
+            
+        print("Finding path to final goal node...")
+        solution_node = self.traverse_node_tree(first_node_in_graph, start_coord, final_goal_coord)
+        path = self.back_track(solution_node)
+        way_points = self.generate_solution_path(path)
+        
+        print("Smoothening waypoints...")
+        new_way_points = self.smoothen_waypoints(way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        new_way_points = self.smoothen_waypoints(new_way_points)
+        
+        final_way_points.extend(new_way_points)
+        
+        self.way_points = final_way_points
+        self.way_points.insert(0, final_start_coord)
+        
+        self.solution_node = solution_node
+        
+        return final_way_points
+    
+    def smoothen_waypoints(self, waypts):
+        new_waypts = []
+        for i in range(0, len(waypts) - 2, 3):
+            first_pt = waypts[i]
+            second_pt = waypts[i + 1]
+            third_pt = waypts[i + 2]
+            vec = Vector(first_pt, third_pt)
+            if not self.do_vector_collide_with_obstacles(vec, Const.RESOLUTION * 0.01):
+                new_waypts.append(first_pt)
+                new_waypts.append(third_pt)
+            else:
+                new_waypts.append(first_pt)
+                new_waypts.append(second_pt)
+                new_waypts.append(third_pt)
+                
+        if third_pt != waypts[-1]:
+            new_waypts.append(waypts[-1])
+            
+        return new_waypts
+     
+     
+     
+     
+     
+             
     #============== UNIT TEST CASE ===============
     def check_vector_collision_with_obstacle(self):
         vector = Vector((5.76, 7.54), (4.68, 25.94))
