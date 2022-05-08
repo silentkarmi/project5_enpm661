@@ -9,6 +9,10 @@ Install python module
 ```
 pip install kdtree # or pip3 install
 ```
+Install Ros Package dwa local planner
+```
+sudo apt-get install ros-noetic-dwa-local-planner
+```
 
 ## Build 
 ```
