@@ -7,7 +7,7 @@ git submodule update --init --recursive
 ```
 Install python module
 ```
-pip install kdtee # or pip3 install
+pip install kdtree # or pip3 install
 ```
 
 ## Build 
