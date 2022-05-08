@@ -1,0 +1,12 @@
+[submodule "ros_code/catkin_ws/src/turtlebot3"]
+	path = ros_code/catkin_ws/src/turtlebot3
+	url = https://github.com/ROBOTIS-GIT/turtlebot3.git
+[submodule "ros_code/catkin_ws/src/turtlebot3_simulations"]
+	path = ros_code/catkin_ws/src/turtlebot3_simulations
+	url = https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
+[submodule "ros_code/catkin_ws/src/mrs_gazebo_common_resources"]
+	path = ros_code/catkin_ws/src/mrs_gazebo_common_resources
+	url = https://github.com/ctu-mrs/mrs_gazebo_common_resources.git
+[submodule "ros_code/catkin_ws/src/move_base_flex"]
+	path = ros_code/catkin_ws/src/move_base_flex
+	url = https://github.com/magazino/move_base_flex.git

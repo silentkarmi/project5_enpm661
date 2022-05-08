@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node pkg="rviz" type="rviz" name="rviz" required="true"
+        args="-d $(find planning_final_project)/param/turtlebot3_navigation.rviz"/>
+</launch>
