@@ -101,7 +101,23 @@ class TurtleBot:
 
     def startPlanting(self): 
         self.mode = "plant"
-    
+
+    def followPath(self, path): 
+        for waypoint in path: 
+            try:
+                result = self.move(waypoint)
+                if result: 
+                    rospy.loginfo("Goal execution done!")
+                    self.printCurrentPose()
+                    # turtlebot.wonderAndCollect()
+                    # turtlebot.collectNearbySeeds()
+                    self.printCurrentPose()
+                    self.printSeedsCollection()
+                    print("==========")
+
+            except rospy.ROSInterruptException:
+                rospy.loginfo("Navigation test finished.")
+
 
 if __name__ == "__main__":
     rospy.init_node("turtlebot_node", anonymous=True)

@@ -114,7 +114,6 @@ class Forest:
             # Forest.spawn_service_client(model_name, model_sdf, "/", initial_pose, "world")
             Forest.forest_grid[Forest.y_max-y-1][x] = Forest.GRID_TREE
             Forest.total_trees += 1
-            rospy.sleep(0.1)
 
         rospy.loginfo("Finish loading forest.")
 
