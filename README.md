@@ -5,6 +5,10 @@ Install ros package submodule
 ```
 git submodule update --init --recursive
 ```
+Install python module
+```
+pip install kdtee # or pip3 install
+```
 
 ## Build 
 ```
