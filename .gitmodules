@@ -10,3 +10,6 @@
 [submodule "ros_code/catkin_ws/src/move_base_flex"]
 	path = ros_code/catkin_ws/src/move_base_flex
 	url = https://github.com/magazino/move_base_flex.git
+[submodule "ros_code/catkin_ws/src/turtlebot3_mbf"]
+	path = ros_code/catkin_ws/src/turtlebot3_mbf
+	url = https://github.com/Rayman/turtlebot3_mbf.git
